@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knapsack Problem Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .item {
+            display: inline-block;
+            margin: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            text-align: center;
+            padding-top: 10px;
+            padding-bottom: 10px;
+            font-size: 14px;
+        }
+   	.bold-text {
+        	font-weight: bold;
+    	}
+        #bag {
+            width: max-width;
+            height: 300px;
+            margin: 20px;
+            border: 2px dashed #007bff;
+            border-radius: 10px;
+            position: relative;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+        }
+        #studentResult {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+        }
+
+  	 #developer {
+	        font-size: smaller;
+    	}
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Knapsack Problem Demo</h2>
+    <p id="developer">Developed by Dr.Saronsad Sokantika</p>
+    <p>Try to put items in the bag to acheive the highest possible value.</p>
+    <p class="bold-text">Items</p>
+    <div id="itemsContainer"></div>
+    
+    <p class="bold-text">Bag Capacity: 15 kg</p>
+    <div id="bag" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+
+    <button onclick="clearBag()">Clear Bag</button>
+    
+    <div id="studentResult"></div>
+    <div id="result"></div>
+</div>
+
+<script>
+    const itemsData = [
+        { id: '1', weight: 3, value: 60, color: '#ffcccc' }, // Light Red
+        { id: '2', weight: 4, value: 100, color: '#add8e6' }, // Light Blue
+        { id: '3', weight: 5, value: 120, color: '#c6efce' }, // Light Green
+        { id: '4', weight: 2, value: 40, color: '#ffffcc' }, // Light Yellow
+        { id: '5', weight: 6, value: 150, color: '#c7b8ea' }, // Light Purple
+        { id: '6', weight: 1, value: 20, color: '#ffd7be' }, // Light Orange
+        { id: '7', weight: 7, value: 180, color: '#D3D3D3' }, // Light gray
+    ];
+
+    let totalWeight = 0;
+    let totalValue = 0;
+    const selectedItems = [];
+    const bagItems = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+    generateItemFields();
+});
+    function generateItemFields() {
+        const itemsContainer = document.getElementById('itemsContainer');
+        itemsContainer.innerHTML = '';
+
+        itemsData.forEach((item, index) => {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'item';
+            itemDiv.style.background = item.color;
+            itemDiv.style.width = `${item.weight *10 +80}px`;
+            itemDiv.style.height = `${item.weight *5 +45}px`;
+            itemDiv.style.fontSize = '14px';
+            itemDiv.style.padding = '10px';
+            itemDiv.id = item.id;
+            itemDiv.draggable = true;
+            itemDiv.ondragstart = function(event) {
+                event.dataTransfer.setData("text", event.target.id);
+            };
+            itemDiv.innerHTML = `
+                Item ${item.id}:<br>
+                Weight = ${item.weight} kg,<br>
+                Value = ${item.value}
+            `;
+            itemsContainer.appendChild(itemDiv);
+        });
+    }
+
+    function allowDrop(event) {
+        event.preventDefault();
+    }
+
+    function drop(event) {
+    event.preventDefault();
+    const itemId = event.dataTransfer.getData("text");
+    const item = itemsData.find(i => i.id === itemId);
+
+    // Check if the item is already in the bag
+    if (selectedItems.find(selectedItem => selectedItem.id === item.id)) {
+        alert('You have already selected this item!');
+        return; // Exit the function if the item is already in the bag
+    }
+
+    if (totalWeight + item.weight <= 15) {
+        totalWeight += item.weight;
+        totalValue += item.value;
+        selectedItems.push(item);
+        bagItems.push(item);
+
+        const bag = document.getElementById('bag');
+        const rect = bag.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+
+        const bagItem = document.createElement('div');
+        bagItem.className = 'item';
+        bagItem.style.background = item.color;
+        bagItem.style.width = `${item.weight * 10 + 80}px`;
+        bagItem.style.height = `${item.weight * 5 + 45}px`;
+        bagItem.style.position = 'absolute';
+        bagItem.style.top = `${y}px`;
+        bagItem.style.left = `${x}px`;
+        bagItem.id = `bagItem${bagItems.length - 1}`;
+        bagItem.dataset.originalId = itemId; // Store the original item ID
+        bagItem.draggable = true;
+        bagItem.ondragstart = function (event) {
+            event.dataTransfer.setData("text", event.target.id);
+        };
+        bagItem.innerHTML = `
+            Item ${item.id}:<br>
+            Weight = ${item.weight} kg,<br>
+            Value = ${item.value}
+        `;
+        document.getElementById('bag').appendChild(bagItem);
+
+        updateStudentResult();
+    } else {
+        alert('Your selection exceeds the knapsack capacity!');
+    }
+}
+
+    document.addEventListener('dragover', function(event) {
+        event.preventDefault();
+    });
+
+document.addEventListener('drop', function(event) {
+    event.preventDefault();
+    const itemId = event.dataTransfer.getData("text");
+    if (itemId.startsWith('bagItem')) {
+        const rect = document.getElementById('bag').getBoundingClientRect();
+        if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) {
+            const bag = document.getElementById('bag');
+            const itemElement = document.getElementById(itemId);
+            if (itemElement) {
+                const originalItemId = itemElement.dataset.originalId;
+                const itemIndex = selectedItems.findIndex(item => item.id === originalItemId);
+                if (itemIndex !== -1) {
+                    const item = selectedItems[itemIndex];
+                    totalWeight -= item.weight;
+                    totalValue -= item.value;
+                    selectedItems.splice(itemIndex, 1);
+                    bagItems.splice(itemIndex, 1);
+
+                    bag.removeChild(itemElement);
+
+                    updateStudentResult();
+                }
+            }
+        }
+    }
+});
+
+    function clearBag() {
+        totalWeight = 0;
+        totalValue = 0;
+        selectedItems.length = 0;
+        bagItems.length = 0;
+
+        const bag = document.getElementById('bag');
+        while (bag.children.length > 0) {
+            bag.removeChild(bag.children[0]);
+        }
+
+        updateStudentResult();
+    }
+
+let optimalSolutionVisible = false;
+
+
+function updateStudentResult() {
+    const studentResultDiv = document.getElementById('studentResult');
+    studentResultDiv.innerHTML = `
+        <h3>Your Solution:</h3>
+        <p>Total Weight: ${totalWeight} kg</p>
+        <p>Total Value: ${totalValue}</p>
+        <p>Selected Items:</p>
+        <ul>
+            ${selectedItems.map((item, index) => `<li>Item  ${item.id}: Weight=${item.weight} kg, Value=${item.value}</li>`).join('')}
+        </ul>
+    `;
+}
+
+</script>
+
+</body>
+</html>
